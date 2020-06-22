@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Remove parameter `Cfg`. Its fields are now parameters directly in `axi_xbar`.
 - `axi_lite_xbar`: Remove parameter `Cfg`. Its fields are now direct parameters.
 - `axi_pkg`: Remove `xbar_cfg_t`, is now flat parameter list of `axi_xbar` and `axi_lite_xbar`.
-- `Bender`: Bump dependency `common_cells` to `v1.18.0`.
+- `Bender`: Bump dependency `common_cells` to `v1.19.0`.
 
 ### Fixed
 
