@@ -95,7 +95,7 @@ module axi_xbar #(
   /// Type of index for a default master port.
   parameter type default_idx_t = logic [DefaultIdxWidth-1:0]
 ) (
-  /// Clock, poitive edge triggered.
+  /// Clock, positive edge triggered.
   input  logic clk_i,
   /// Asynchronous reset, active low.
   input  logic rst_ni,
