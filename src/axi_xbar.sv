@@ -19,15 +19,13 @@ module axi_xbar #(
   /// Number of master ports of the crossbar.
   /// This many slave modules are connected to it.
   parameter int unsigned NumMstPorts = 32'd0,
-  /// Maximum number of open transactions each master connected to the crossbar can have in
-  /// flight at the same time.
+  /// Maximum number of transactions each master connected to a slave port of the crossbar can have
+  /// in flight at the same time.
   parameter int unsigned MaxMstTrans = 32'd8,
-  /// Maximum number of open transactions each slave connected to the crossbar can have in
-  /// flight at the same time.
+  /// Maximum number of transactions each slave connected to a master port of the crossbar can have
+  /// in flight at the same time.
   parameter int unsigned MaxSlvTrans = 32'd8,
   /// Determine if the internal FIFOs of the crossbar are instantiated in fallthrough mode.
-  /// 0: No fallthrough
-  /// 1: Fallthrough
   parameter bit FallThrough = 1'b0,
   /// The Latency mode of the xbar. This determines if the channels on the ports have
   /// a spill register instantiated.
@@ -36,10 +34,10 @@ module axi_xbar #(
   /// This is the number of `axi_multicut` stages instantiated in the line cross of the channels.
   /// Having multiple stages can potentially add a large number of FFs!
   parameter int unsigned PipelineStages = 32'd0,
-  /// AXI ID width of the salve ports. The ID width of the master ports is determined
-  /// Automatically. See `axi_mux` for details.
+  /// AXI ID width of the slave ports. The ID width of the master ports is determined
+  /// automatically. See `axi_mux` for details.
   parameter int unsigned AxiIdWidthSlvPorts = 32'd0,
-  /// The used ID portion to determine if a different salve is used for the same ID.
+  /// The used ID portion to determine if a different slave is used for the same ID.
   /// See `axi_demux` for details.
   parameter int unsigned AxiIdUsedSlvPorts = 32'd0,
   /// AXI4+ATOP address field width.
@@ -48,7 +46,7 @@ module axi_xbar #(
   parameter int unsigned AxiDataWidth = 32'd0,
   /// The number of address rules defined for routing of the transactions.
   /// Each master port can have multiple rules, should have however at least one.
-  /// If a transaction can not be routed the xbar will answer with an `axi_pkg::RESP_DECERR`.
+  /// If a transaction can not be routed, the xbar will answer with an `axi_pkg::RESP_DECERR`.
   parameter int unsigned NumAddrRules = 32'd0,
   /// AXI4+ATOP AW channel struct type for the slave ports.
   parameter type slv_aw_chan_t = logic,
