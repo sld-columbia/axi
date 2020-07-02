@@ -50,25 +50,16 @@ module tb_axi_xbar #(
   localparam time TestTime =  8ns;
 
   // AXI configuration which is automatically derived.
-  localparam int unsigned TbAxiIdWidthSlaves =  TbAxiIdWidthMasters + $clog2(TbNumMasters);
+  localparam int unsigned TbAxiIdWidthSlaves = TbAxiIdWidthMasters + $clog2(TbNumMasters);
   localparam int unsigned TbAxiAddrWidth     = 32'd32;
-  localparam int unsigned TbAxiStrbWidth     =  TbAxiDataWidth / 8;
-  localparam int unsigned TbAxiUserWidth     =  5;
-  // In the bench can change this variables which are set here freely,
-  localparam axi_pkg::xbar_cfg_t xbar_cfg = '{
-    NoSlvPorts:         TbNumMasters,
-    NoMstPorts:         TbNumSlaves,
-    MaxMstTrans:        10,
-    MaxSlvTrans:        6,
-    FallThrough:        1'b0,
-    LatencyMode:        axi_pkg::CUT_ALL_AX,
-    PipelineStages:     TbPipeline,
-    AxiIdWidthSlvPorts: TbAxiIdWidthMasters,
-    AxiIdUsedSlvPorts:  TbAxiIdUsed,
-    AxiAddrWidth:       TbAxiAddrWidth,
-    AxiDataWidth:       TbAxiDataWidth,
-    NoAddrRules:        TbNumSlaves
-  };
+  localparam int unsigned TbAxiStrbWidth     = TbAxiDataWidth / 32'd8;
+  localparam int unsigned TbAxiUserWidth     = 32'd5;
+  // Static DUT parameters, can be changed if needed.
+  localparam int unsigned            TbMaxMstTrans = 32'd10;
+  localparam int unsigned            TbMaxSlvTrans = 32'd6;
+  localparam bit                     TbFallThrough = 1'b0;
+  localparam axi_pkg::xbar_latency_e TbLatencyMode = axi_pkg::CUT_ALL_AX;
+
   typedef logic [TbAxiIdWidthMasters-1:0] id_mst_t;
   typedef logic [TbAxiIdWidthSlaves-1:0]  id_slv_t;
   typedef logic [TbAxiAddrWidth-1:0]      addr_t;
@@ -94,10 +85,10 @@ module tb_axi_xbar #(
   `AXI_TYPEDEF_RESP_T(slv_resp_t, b_chan_slv_t, r_chan_slv_t)
 
   // Each slave has its own address range:
-  localparam rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = addr_map_gen();
+  localparam rule_t [TbNumSlaves-1:0] AddrMap = addr_map_gen();
 
-  function rule_t [xbar_cfg.NoAddrRules-1:0] addr_map_gen ();
-    for (int unsigned i = 0; i < xbar_cfg.NoAddrRules; i++) begin
+  function rule_t [TbNumSlaves-1:0] addr_map_gen ();
+    for (int unsigned i = 0; i < TbNumSlaves; i++) begin
       addr_map_gen[i] = rule_t'{
         idx:        unsigned'(i),
         start_addr:  i    * 32'h0000_2000,
@@ -207,7 +198,7 @@ module tb_axi_xbar #(
       static rand_axi_master_t rand_axi_master = new ( master_dv[i] );
       end_of_sim[i] <= 1'b0;
       rand_axi_master.add_memory_region(AddrMap[0].start_addr,
-                                      AddrMap[xbar_cfg.NoAddrRules-1].end_addr,
+                                      AddrMap[TbNumSlaves-1].end_addr,
                                       axi_pkg::DEVICE_NONBUFFERABLE);
       rand_axi_master.reset();
       @(posedge rst_n);
@@ -234,7 +225,7 @@ module tb_axi_xbar #(
       .AxiUserWidth      ( TbAxiUserWidth       ),
       .NoMasters         ( TbNumMasters         ),
       .NoSlaves          ( TbNumSlaves          ),
-      .NoAddrRules       ( xbar_cfg.NoAddrRules ),
+      .NoAddrRules       ( TbNumSlaves          ),
       .rule_t            ( rule_t               ),
       .AddrMap           ( AddrMap              ),
       .TimeTest          ( TestTime             )
@@ -267,21 +258,32 @@ module tb_axi_xbar #(
   // DUT
   //-----------------------------------
   axi_xbar #(
-    .Cfg          ( xbar_cfg      ),
-    .slv_aw_chan_t( aw_chan_mst_t ),
-    .mst_aw_chan_t( aw_chan_slv_t ),
-    .w_chan_t     ( w_chan_t      ),
-    .slv_b_chan_t ( b_chan_mst_t  ),
-    .mst_b_chan_t ( b_chan_slv_t  ),
-    .slv_ar_chan_t( ar_chan_mst_t ),
-    .mst_ar_chan_t( ar_chan_slv_t ),
-    .slv_r_chan_t ( r_chan_mst_t  ),
-    .mst_r_chan_t ( r_chan_slv_t  ),
-    .slv_req_t    ( mst_req_t     ),
-    .slv_resp_t   ( mst_resp_t    ),
-    .mst_req_t    ( slv_req_t     ),
-    .mst_resp_t   ( slv_resp_t    ),
-    .rule_t       ( rule_t        )
+    .NumSlvPorts       ( TbNumMasters        ),
+    .NumMstPorts       ( TbNumSlaves         ),
+    .MaxMstTrans       ( TbMaxMstTrans       ),
+    .MaxSlvTrans       ( TbMaxSlvTrans       ),
+    .FallThrough       ( TbFallThrough       ),
+    .LatencyMode       ( TbLatencyMode       ),
+    .PipelineStages    ( TbPipeline          ),
+    .AxiIdWidthSlvPorts( TbAxiIdWidthMasters ),
+    .AxiIdUsedSlvPorts ( TbAxiIdUsed         ),
+    .AxiAddrWidth      ( TbAxiAddrWidth      ),
+    .AxiDataWidth      ( TbAxiDataWidth      ),
+    .NumAddrRules      ( TbNumSlaves         ), // Tb has one rule per master port
+    .slv_aw_chan_t     ( aw_chan_mst_t       ),
+    .mst_aw_chan_t     ( aw_chan_slv_t       ),
+    .w_chan_t          ( w_chan_t            ),
+    .slv_b_chan_t      ( b_chan_mst_t        ),
+    .mst_b_chan_t      ( b_chan_slv_t        ),
+    .slv_ar_chan_t     ( ar_chan_mst_t       ),
+    .mst_ar_chan_t     ( ar_chan_slv_t       ),
+    .slv_r_chan_t      ( r_chan_mst_t        ),
+    .mst_r_chan_t      ( r_chan_slv_t        ),
+    .slv_req_t         ( mst_req_t           ),
+    .slv_resp_t        ( mst_resp_t          ),
+    .mst_req_t         ( slv_req_t           ),
+    .mst_resp_t        ( slv_resp_t          ),
+    .rule_t            ( rule_t              )
   ) i_xbar_dut (
     .clk_i                 ( clk          ),
     .rst_ni                ( rst_n        ),
