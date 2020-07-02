@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `axi_xbar`:
   - Add parameter `PipelineStages`.  This adds `axi_multicuts` in the crossed connections in the
     xbar between the demuxes and muxes.
-  - Remove parameter `Cfg`. Is now a flat parameter list.
+  - Remove parameter `Cfg`. Its fields are now parameters directly in `axi_xbar`.
 - `axi_pkg`: Remove `xbar_cfg_t`, is now flat parameter list of `axi_xbar`.
 
 ### Fixed
