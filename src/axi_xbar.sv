@@ -82,7 +82,7 @@ module axi_xbar #(
   ///
   /// Required struct fields:
   ///
-  /// typedef sruckt packed {
+  /// typedef struct packed {
   ///   int unsigned idx;
   ///   axi_addr_t   start_addr;
   ///   axi_addr_t   end_addr;
