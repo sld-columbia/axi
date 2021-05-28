@@ -23,6 +23,7 @@ package axi_pkg;
   typedef logic [2:0] size_t;
   typedef logic [5:0] atop_t; // atomic operations
   typedef logic [3:0] nsaid_t; // non-secure address identifier
+  typedef logic [3:0] snoop_t; // coherent transaction that requires snoop
 
   localparam BURST_FIXED = 2'b00;
   localparam BURST_INCR  = 2'b01;
@@ -57,6 +58,17 @@ package axi_pkg;
   localparam ATOP_SMIN  = 3'b101;
   localparam ATOP_UMAX  = 3'b110;
   localparam ATOP_UMIN  = 3'b111;
+
+  localparam SNOOP_READONCE           = 4'b0000;
+  localparam SNOOP_READSHARED         = 4'b0001;
+  localparam SNOOP_READCLEAN          = 4'b0010;
+  localparam SNOOP_READNOTSHAREDDIRTY = 4'b0011;
+  localparam SNOOP_READUNIQUE         = 4'b0111;
+  localparam SNOOP_CLEANSHARED        = 4'b1000;
+  localparam SNOOP_CLEANINVALID       = 4'b1001;
+  localparam SNOOP_MAKEINVALID        = 4'b1101;
+  localparam SNOOP_DVMCOMPLETE        = 4'b1110;
+  localparam SNOOP_DVMMESSAGE         = 4'b1111;
 
   // 4 is recommended by AXI standard, so lets stick to it, do not change
   localparam IdWidth   = 4;
@@ -120,5 +132,13 @@ package axi_pkg;
       resp_t resp;
       logic  last;
   } r_chan_t;
+
+  // Snoop Address Channel (AC)
+   typedef struct packed {
+      addr_t   addr;
+      prot_t   prot;
+      snoop_t  snoop;
+   } ac_chan_t;
+
 
 endpackage
